@@ -1,0 +1,125 @@
+\documentclass[10pt,journal,onecolumn,a4paper]{IEEEtran}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,booktabs}
+\usepackage{pgfplots}
+\usepackage[hidelinks]{hyperref}
+\pgfplotsset{compat=1.18}
+\hypersetup{pdftitle={Rejection-Sampling Fine-Tuning and GRPO for Qwen3-8B},pdfauthor={Amirhossein},pdfsubject={An anonymized single-task post-training experiment},pdfkeywords={Qwen3,RSFT,GRPO,QLoRA,evaluation}}
+\pagestyle{plain}
+\title{Rejection-Sampling Fine-Tuning and GRPO for Qwen3-8B}
+\author{Amirhossein}
+\begin{document}
+\maketitle
+\begin{abstract}
+This study measures Qwen3-8B reliability on one fixed, privately retained, verifiable task before and after own-success rejection-sampling fine-tuning (RSFT) and a short Group Relative Policy Optimization (GRPO) continuation. Three independent 100-attempt cohorts produced 0, 100 and 100 strict passes, respectively. Source-scaffolded collection retained one distinct successful trajectory for completion-only QLoRA. GRPO used 48 fresh training episodes and made 16 genuine optimizer updates. Its measured final pass rate matched the already saturated RSFT result. These observations demonstrate task-specific reliability and an auditable training workflow; they do not establish transfer to unseen tasks, and memorization is plausible.
+\end{abstract}
+\begin{IEEEkeywords}
+Large language models, rejection sampling, reinforcement learning, QLoRA, reproducible evaluation.
+\end{IEEEkeywords}
+
+\section{Task and Evaluation Protocol}
+The task requires a tool-using agent to produce a structured answer from supplied materials. Strict success requires all ten original artifact checks; fractional reward is the number passed divided by ten. Wrong answers, malformed actions and exhausted budgets count as failures. Explicit submission is a separate diagnostic, rather than an additional strict-pass condition. Original task instructions, answers and raw trajectories remain private.
+
+All evaluations use the same pinned Qwen3-8B checkpoint~\cite{qwen}, repaired input observations, bounded tools, native chat template and NF4 double quantization with BF16 compute. Thinking is disabled; sampling uses temperature 0.7, top-$p$ 0.8 and top-$k$ 20. Budgets are 16,384 context tokens, 4,096 new tokens per turn, 16,384 total new tokens and 12 turns. Disjoint seed cohorts were fixed before evaluation. Only the adapter changes between model stages; the final fixed-budget adapter is evaluated without checkpoint selection on final outcomes. There were no infrastructure exclusions in the three completed cohorts.
+
+\begin{table}[!ht]
+\centering
+\caption{Fresh Evaluation on One Fixed Task}
+\label{tab:results}
+\begin{tabular}{lrrrr}
+\toprule
+Model stage & Strict passes & Pass rate & 95\% Wilson CI & Mean reward \\
+\midrule
+Baseline & 0/100 & 0.0\% & 0.00--3.70\% & 0.030 \\
+After RSFT & 100/100 & 100.0\% & 96.30--100.00\% & 1.000 \\
+After RSFT + GRPO & 100/100 & 100.0\% & 96.30--100.00\% & 1.000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Training Method and Execution}
+\subsection{Source-Scaffolded Own-Success RSFT}
+Own-success filtering is a simple starting point when a deterministic verifier is available~\cite{rest}. An independent stronger-policy search yielded 0/32 strict successes; a separate generic correction search yielded 0/4. Subsequent collection used coding-assistant-authored attention to relevant original source statements, without expected numeric answers, reference solutions, other-model targets or verifier feedback in those scaffolded samples. This task-specific guidance influenced the targets and is part of the method.
+
+Eight scaffolded attempts produced three passing artifacts, of which two were submitted exact action duplicates. Conservative submitted-success filtering and deduplication retained \textbf{one distinct own-model trajectory}, two action turns and \textbf{132 supervised tokens}. Exact generated actions were distilled into the frozen non-thinking context; prompt and tool-observation tokens were masked. This action-only distillation is narrower than full-trajectory RSFT.
+
+QLoRA~\cite{qlora} trained rank-16, alpha-32, dropout-zero adapters with learning rate $10^{-4}$ for 40 cumulative updates. An interruption of unknown cause required restoring adapter, optimizer, scheduler and random states at update 26 and continuing for 14 updates. Completion-position logit projection retained the full causal context while reducing vocabulary-projection memory. Evaluation contains no collection scaffold. A tiny repeated dataset can readily be memorized.
+
+\subsection{Short Online GRPO Continuation}
+GRPO~\cite{grpo} continued the measured RSFT adapter. A separate four-episode pilot established mixed rewards under hotter exploration and was excluded from training and evaluation. The fixed run sampled 12 groups of four fresh episodes, with two optimizer iterations per nonconstant-reward group, learning rate $5\times10^{-6}$ and clipping $\epsilon=0.2$. All four equal-reward groups skipped the optimizer entirely, yielding \textbf{16 actual updates across 48 episodes}.
+
+\section{GRPO Objective and Measured Reward}
+For episode reward $R_i$, group-relative advantage is $A_i=(R_i-\bar R)/(s_R+10^{-8})$, using population standard deviation. With $\rho_{it}=\pi_\theta(a_{it}|h_{it})/\pi_{\mathrm{old}}(a_{it}|h_{it})$, the maximized objective is
+\begin{equation}
+J(\theta)=\frac{1}{G}\sum_{i=1}^{G}\frac{1}{T_i}\sum_{t=1}^{T_i}
+\min\!\left[\rho_{it}A_i,\;\operatorname{clip}(\rho_{it},1-\epsilon,1+\epsilon)A_i\right].
+\end{equation}
+Old-policy log probabilities stay fixed through both inner updates. Sampling and likelihood replay use the same full-support temperature-2 policy (top-$p$ 1, top-$k$ 0). Training budgets are 1,024 new tokens per turn, 2,048 total and four turns. All sampled model tokens, including failures and EOS, receive the episode advantage; prompts and tool observations are excluded. The original trajectory-token mean is followed by a group mean. Here $\beta=0$: no reference-model KL term is used. Hot training rewards are separate from frozen-policy final pass rates.
+
+\begin{figure}[!ht]
+\centering
+\begin{minipage}{0.49\linewidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=\linewidth,height=4.5cm,scale only axis=false,
+ title={(a) Fresh evaluation},title style={font=\small},
+ xlabel={Model stage},ylabel={Strict pass rate (\%)},
+ xmin=-0.45,xmax=2.45,ymin=-0.04,ymax=1.12,
+ xtick={0,1,2},xticklabels={Base,RSFT,GRPO},
+ ytick={0,.25,.5,.75,1},yticklabels={0,25,50,75,100},
+ tick label style={font=\footnotesize},label style={font=\footnotesize},
+ grid=major,grid style={gray!15}]
+\addplot+[only marks,mark=*,blue!65!black,error bars/.cd,y dir=both,y explicit]
+table[x=x,y=rate,y error plus=plus,y error minus=minus] {
+x rate plus minus
+0 0.0 0.03699349820698566 0
+1 1.0 0 0.03699349820698572
+2 1.0 0 0.03699349820698572
+};
+\node[font=\scriptsize,anchor=south] at (axis cs:0,0.055) {0/100};
+\node[font=\scriptsize,anchor=north] at (axis cs:1,0.9) {100/100};
+\node[font=\scriptsize,anchor=north] at (axis cs:2,0.9) {100/100};
+\end{axis}
+\end{tikzpicture}
+\end{minipage}\hfill
+\begin{minipage}{0.49\linewidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=\linewidth,height=4.5cm,scale only axis=false,
+ title={(b) On-policy GRPO},title style={font=\small},
+ xlabel={Group (four fresh episodes)},ylabel={Reward / success fraction},
+ xmin=.5,xmax=12.5,ymin=-.04,ymax=1.06,
+ xtick={1,3,5,7,9,12},ytick={0,.25,.5,.75,1},
+ tick label style={font=\footnotesize},label style={font=\footnotesize},
+ grid=major,grid style={gray!15},
+ legend style={font=\scriptsize,at={(0.98,0.02)},anchor=south east,draw=gray!30,cells={anchor=west}}]
+\addplot[brown!80!black,mark=*,mark size=1.7pt] coordinates {(1,0.275) (2,0.6) (3,0.75) (4,1.0) (5,0.75) (6,0.75) (7,1.0) (8,0.95) (9,1.0) (10,0.75) (11,1.0) (12,0.75)};
+\addlegendentry{Mean verifier reward}
+\addplot[blue!65!black,dashed,mark=square*,mark size=1.5pt] coordinates {(1,0.25) (2,0.25) (3,0.75) (4,1.0) (5,0.75) (6,0.75) (7,1.0) (8,0.75) (9,1.0) (10,0.75) (11,1.0) (12,0.75)};
+\addlegendentry{Strict success fraction}
+\end{axis}
+\end{tikzpicture}
+\end{minipage}
+\caption{Left: three 100-attempt evaluation cohorts with 95\% Wilson intervals. Right: actual rewards from all 12 online groups, including skipped equal-reward groups. Four episodes per group give a noisy training curve, not a held-out learning curve.}
+\label{fig:curves}
+\end{figure}
+
+\section{Interpretation and Limitations}
+RSFT increased the observed rate by 100 percentage points (Newcombe 95\% interval +94.77 to +100.00 points). GRPO minus RSFT is 0 points (interval -3.70 to +3.70 points; two-sided Fisher $p=1$). Equal observed rates do not establish equivalence. Intervals describe attempt sampling on one fixed task, not uncertainty across training runs or unseen tasks. The already saturated RSFT result leaves no observed incremental strict-pass gain for GRPO.
+
+Input-path packaging and initial-observation delivery required repairs before baseline measurement. The same repaired bounded file/calculator/answer interface was used throughout evaluation. The original checker was retained despite interpretation differences in the supplied materials, so the result concerns that checker. Saved native prompts, tokens, tool traces and original checks were replayed for all 148 GRPO training/evaluation episodes. Source guidance, one retained trajectory and one sequential training path limit any general reasoning claim.
+
+\section{Hardware and Reproducibility}
+The experiment ran on an \textbf{NVIDIA RTX 5090 (32 GB VRAM)}, \textbf{AMD Ryzen 9 9950X3D} and approximately \textbf{60 GiB usable RAM}. Software was Python 3.12, PyTorch 2.7.1+cu128, Transformers 4.57.6, PEFT 0.18.1, Accelerate 1.12.0 and bitsandbytes 0.49.2. The model revision is recorded in the public result summary. Coding assistants supported implementation, collection guidance and audits; accepted RSFT targets remain traceable to Qwen3-8B's own generations.
+
+\noindent\textbf{Code, tutorial and editable report:}\\
+\url{https://github.com/amirhnourian/qwen3-post-training-benchmark}\\
+\textbf{Source version:} \texttt{048f6443185712c5179b09c01cd12c1a33b7e725}. The public implementation is a post-experiment extraction with regression checks. Its synthetic example demonstrates the interface and is separate from the measured task; exact benchmark reproduction requires the original private inputs. Original execution evidence is retained separately.
+
+\begin{thebibliography}{4}
+\bibitem{qwen} Qwen Team, ``Qwen3-8B,'' model card, 2025. [Online]. Available: \url{https://huggingface.co/Qwen/Qwen3-8B}
+\bibitem{rest} C. Gulcehre \emph{et al.}, ``Reinforced self-training (ReST) for language modeling,'' \emph{arXiv:2308.08998}, 2023.
+\bibitem{qlora} T. Dettmers, A. Pagnoni, A. Holtzman, and L. Zettlemoyer, ``QLoRA: Efficient finetuning of quantized LLMs,'' \emph{arXiv:2305.14314}, 2023.
+\bibitem{grpo} Z. Shao \emph{et al.}, ``DeepSeekMath: Pushing the limits of mathematical reasoning in open language models,'' \emph{arXiv:2402.03300}, 2024.
+\end{thebibliography}
+\end{document}

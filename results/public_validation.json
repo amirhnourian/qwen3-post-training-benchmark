@@ -1,0 +1,31 @@
+{
+  "checked_at": "2026-10-24T20:13:41.371219+00:00",
+  "source_commit": "048f6443185712c5179b09c01cd12c1a33b7e725",
+  "checks": {
+    "full_cpu_ml_suite": {
+      "tests_passed": 85,
+      "subtests_passed": 8,
+      "cuda_hidden": true,
+      "pretrained_weights_downloaded": false
+    },
+    "minimal_install_suite": {
+      "tests_passed": 65,
+      "optional_ml_modules_skipped": 2
+    },
+    "lint": "passed",
+    "wheel_install_outside_checkout_demo": "passed",
+    "public_summary_arithmetic_and_checksums": "passed",
+    "report": {
+      "path": "reports/qwen3_post_training_report.pdf",
+      "sha256": "79ef3fb8a4e907eddaf4344d8a1a9560a2b54f334611c0c8ad3903e6fcbe7dd1",
+      "pages": 2,
+      "format": "IEEEtran one-column A4",
+      "both_pages_visually_reviewed": true,
+      "no_clipped_or_overlapping_content": true,
+      "hardware_details_present": true,
+      "repository_link_present": true,
+      "text_and_metadata_anonymization_scan": "passed"
+    }
+  },
+  "scope": "Local verification of the public extraction and report. Original private-task records and historical source are retained separately; public aggregate checks do not independently replay them."
+}
