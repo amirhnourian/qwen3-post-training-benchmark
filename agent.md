@@ -25,7 +25,7 @@ private task workspace.
 
 ## Release validation
 
-- Source version: `048f6443185712c5179b09c01cd12c1a33b7e725`.
+- Source version: `651f36ef907de52aa1b6308f325d3d4c25a5ad51`.
 - CPU ML regression: **85 tests and 8 subtests passed**, with CUDA hidden and
   no pretrained model download. Minimal environment: **65 passed, 2 optional
   ML modules skipped**.
@@ -35,9 +35,14 @@ private task workspace.
   chart labels, table, formula, references and hardware details are readable.
 - Public source/report identifier scans passed. The repository contains only
   the reviewed generic implementation and sanitized artifacts.
-- Ready for publication at
+- Public source and report are published at
   https://github.com/amirhnourian/qwen3-post-training-benchmark.
   The live CI badge records remote workflow status independently.
 
 See `results/public_validation.json` for the local release checks. This log
 records the public extraction; it does not replace private execution evidence.
+
+- Patch release 0.1.1 adds Accelerate to the optional CPU test stack so all
+  completion-loss tests run in CI. The corrected GitHub workflow passed
+  **85 tests and 8 subtests with no skips**. The final report was rebuilt
+  with the corrected source version and both rendered pages reviewed again.

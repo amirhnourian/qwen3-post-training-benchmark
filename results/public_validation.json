@@ -1,6 +1,6 @@
 {
-  "checked_at": "2026-10-24T20:13:41.371219+00:00",
-  "source_commit": "048f6443185712c5179b09c01cd12c1a33b7e725",
+  "checked_at": "2026-10-24T20:19:04.451563+00:00",
+  "source_commit": "651f36ef907de52aa1b6308f325d3d4c25a5ad51",
   "checks": {
     "full_cpu_ml_suite": {
       "tests_passed": 85,
@@ -17,7 +17,7 @@
     "public_summary_arithmetic_and_checksums": "passed",
     "report": {
       "path": "reports/qwen3_post_training_report.pdf",
-      "sha256": "79ef3fb8a4e907eddaf4344d8a1a9560a2b54f334611c0c8ad3903e6fcbe7dd1",
+      "sha256": "655ed06c1f2e7e909fbb7cc6fd108bb728a0f2a05bf456f1dd114548f37ab7e1",
       "pages": 2,
       "format": "IEEEtran one-column A4",
       "both_pages_visually_reviewed": true,
@@ -25,6 +25,14 @@
       "hardware_details_present": true,
       "repository_link_present": true,
       "text_and_metadata_anonymization_scan": "passed"
+    },
+    "github_cpu_workflow": {
+      "source_commit": "651f36ef907de52aa1b6308f325d3d4c25a5ad51",
+      "conclusion": "success",
+      "tests_passed": 85,
+      "subtests_passed": 8,
+      "skipped": 0,
+      "url": "https://github.com/amirhnourian/qwen3-post-training-benchmark/actions/runs/40129100806"
     }
   },
   "scope": "Local verification of the public extraction and report. Original private-task records and historical source are retained separately; public aggregate checks do not independently replay them."
