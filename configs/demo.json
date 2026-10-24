@@ -1,0 +1,6 @@
+{
+  "backend": "deterministic-demo",
+  "task": "examples/arithmetic/task.json",
+  "seed": 7,
+  "description": "Offline synthetic tool walkthrough only; not a model benchmark or reproduction of the recorded task."
+}

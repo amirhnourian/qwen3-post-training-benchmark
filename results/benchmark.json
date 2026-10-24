@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "model": {
+    "id": "Qwen/Qwen3-8B",
+    "revision": "b968826d9c46dd6066d109eabc6255188de91218",
+    "quantization": "NF4 double quantization; BF16 compute"
+  },
+  "stages": [
+    {
+      "name": "baseline",
+      "successes": 0,
+      "trials": 100,
+      "pass_rate": 0.0,
+      "ci95_low": 0.0,
+      "ci95_high": 0.03699349820698566,
+      "mean_reward": 0.03
+    },
+    {
+      "name": "rsft",
+      "successes": 100,
+      "trials": 100,
+      "pass_rate": 1.0,
+      "ci95_low": 0.9630065017930143,
+      "ci95_high": 1.0,
+      "mean_reward": 1.0
+    },
+    {
+      "name": "grpo",
+      "successes": 100,
+      "trials": 100,
+      "pass_rate": 1.0,
+      "ci95_low": 0.9630065017930143,
+      "ci95_high": 1.0,
+      "mean_reward": 1.0
+    }
+  ],
+  "scope": {
+    "task_count": 1,
+    "task_visibility": "original inputs retained locally",
+    "claim": "sampling reliability on one repeated fixed task; transfer is untested",
+    "public_example": "synthetic demonstration only; not the measured benchmark",
+    "code_status": "post-experiment extraction with regression checks; original execution records retained separately"
+  },
+  "evaluation": {
+    "max_context": 16384,
+    "max_new_tokens": 4096,
+    "max_total_new_tokens": 16384,
+    "max_steps": 12,
+    "temperature": 0.7,
+    "top_p": 0.8,
+    "top_k": 20,
+    "thinking": false,
+    "preload_inputs": true,
+    "attention": "sdpa",
+    "quantization": "nf4-double-bf16"
+  },
+  "comparisons": {
+    "rsft_minus_baseline": {
+      "difference": 1.0,
+      "ci95_low": 0.947683293116056,
+      "ci95_high": 1.0,
+      "fisher_two_sided_p": 2.2087606931995028e-59
+    },
+    "grpo_minus_rsft": {
+      "difference": 0.0,
+      "ci95_low": -0.03699349820698572,
+      "ci95_high": 0.03699349820698572,
+      "fisher_two_sided_p": 1.0
+    }
+  },
+  "rsft": {
+    "collection": "source-scaffolded own-model successes; no other-model targets or expected numeric answers supplied",
+    "independent_collection": {
+      "successes": 0,
+      "trials": 32
+    },
+    "correction_search": {
+      "successes": 0,
+      "trials": 4
+    },
+    "source_scaffold_collection": {
+      "passing_artifacts": 3,
+      "trials": 8,
+      "submitted_successes": 2
+    },
+    "retained_distinct_trajectories": 1,
+    "action_examples": 2,
+    "supervised_tokens_per_dataset_pass": 132,
+    "cumulative_optimizer_updates": 40,
+    "rank": 16,
+    "alpha": 32,
+    "dropout": 0,
+    "learning_rate": 0.0001,
+    "recovery": {
+      "resumed_from_update": 26,
+      "additional_updates": 14,
+      "interruption_cause": "unknown"
+    }
+  },
+  "grpo": {
+    "groups": 12,
+    "group_size": 4,
+    "rollouts": 48,
+    "optimizer_updates": 16,
+    "zero_variance_groups": 4,
+    "iterations_per_nonconstant_group": 2,
+    "learning_rate": 5e-06,
+    "clip_epsilon": 0.2,
+    "beta": 0,
+    "reference_model": null,
+    "temperature": 2.0,
+    "top_p": 1.0,
+    "top_k": 0,
+    "max_new_tokens": 1024,
+    "max_total_new_tokens": 2048,
+    "max_steps": 4,
+    "normalization": "mean sampled tokens within trajectory, then mean across group",
+    "mask": "all sampled model tokens including failures and EOS; prompts and tool observations excluded",
+    "generated_tokens": 9873,
+    "optimization_token_presentations": 15510
+  },
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "vram_gb": 32,
+    "cpu": "AMD Ryzen 9 9950X3D",
+    "usable_ram_gib": 60
+  },
+  "software": {
+    "python": "3.12",
+    "torch": "2.7.1+cu128",
+    "transformers": "4.57.6",
+    "peft": "0.18.1",
+    "accelerate": "1.12.0",
+    "bitsandbytes": "0.49.2"
+  },
+  "validation": {
+    "original_cpu_tests_passed": 106,
+    "original_cpu_subtests_passed": 61,
+    "recorded_episodes_replayed": 148,
+    "verifier_checks_per_episode": 10,
+    "baseline_and_rsft_evidence_preserved": true
+  },
+  "limitations": [
+    "One fixed task and one sequential training path; no unseen-task transfer evaluation.",
+    "Only one distinct source-guided successful trajectory was retained for RSFT.",
+    "Memorization is plausible.",
+    "Hot training rewards are separate from frozen-policy final pass rates.",
+    "No measured incremental strict-pass gain from GRPO.",
+    "Input packaging and source/checker interpretation issues were documented; the original checker was preserved."
+  ]
+}

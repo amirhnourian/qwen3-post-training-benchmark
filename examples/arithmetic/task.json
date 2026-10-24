@@ -1,0 +1,14 @@
+{
+  "task_id": "synthetic-arithmetic-demo-v1",
+  "description": "Public synthetic tool demonstration. This is not the task used for the recorded benchmark and contains no model measurements.",
+  "system_prompt": "Solve the arithmetic exercise using the supplied tools. Read the expression, calculate it, write only the numeric result, then submit.",
+  "user_prompt": "The named input 'expression' contains the exercise. Use read_input, calculate, write_answer and submit in that order.",
+  "inputs": {"expression": "(23 * 11) - 19"},
+  "tools": [
+    {"type": "function", "function": {"name": "read_input", "description": "Read an explicitly declared input by name.", "parameters": {"type": "object", "properties": {"name": {"type": "string"}}, "required": ["name"], "additionalProperties": false}}},
+    {"type": "function", "function": {"name": "calculate", "description": "Calculate a bounded arithmetic expression.", "parameters": {"type": "object", "properties": {"expression": {"type": "string"}}, "required": ["expression"], "additionalProperties": false}}},
+    {"type": "function", "function": {"name": "write_answer", "description": "Write the answer as text.", "parameters": {"type": "object", "properties": {"content": {"type": "string"}}, "required": ["content"], "additionalProperties": false}}},
+    {"type": "function", "function": {"name": "submit", "description": "Submit the written answer.", "parameters": {"type": "object", "properties": {}, "additionalProperties": false}}}
+  ],
+  "scoring": {"kind": "numeric", "expected": 234, "absolute_tolerance": 0}
+}
